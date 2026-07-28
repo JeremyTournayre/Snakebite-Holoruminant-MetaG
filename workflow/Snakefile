@@ -124,6 +124,7 @@ include: "rules/mag_annotate/__main__.smk"
 include: "rules/contig_annotate/__main__.smk"
 include: "rules/report/__main__.smk"
 include: "rules/devel/throw_error.smk"
+include: "rules/metax/__main__.smk"
 
 debug("Subworkflows included. Ready to run.")
 
@@ -138,3 +139,16 @@ rule all:
         rules.contig_annotate.input,
         rules.quantify.input,
   #      rules.report.input,
+
+for r in workflow.rules:
+    try:
+        esc_list = get_escalation_order(r.name)
+        if len(esc_list) <= 1:
+            r.retries = 0
+        else:
+            r.retries = len(esc_list)
+    except Exception:
+        pass
+
+for r in workflow.rules:
+    print(f"{r.name} -> retries = {getattr(r, 'retries', 'NOT SET')}")

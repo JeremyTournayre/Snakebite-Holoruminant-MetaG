@@ -75,10 +75,12 @@ mag_annotate:
     additional_options: " --skip-crispr --skip-plot "
   phylophlan:
     diversity: "high"
-    
+  eggnog:
+    split: 10000   # For quicker data processing is the prodigal output processed in chunks of this size
+
 contig_annotate:
   prodigal:
-    split: 1000000   # For quicker data processing is the prodigal output processed in chunks of this size
+    split: 50000   # For quicker data processing is the prodigal output processed in chunks of this size
   hmmer:
     domt:
       fefe: 15.9

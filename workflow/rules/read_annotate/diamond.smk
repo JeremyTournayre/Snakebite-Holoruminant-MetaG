@@ -1,5 +1,5 @@
 rule read_annotate__diamond__assign:
-    """Run Diamond with SHM/NVME staging if possible."""
+    """Run Diamond with SHM/NVME staging, safe for concurrent jobs."""
     input:
         forwards=PRE_BOWTIE2 / "decontaminated_reads" / "{sample_id}.{library_id}_1.fq.gz",
         reverses=PRE_BOWTIE2 / "decontaminated_reads" / "{sample_id}.{library_id}_2.fq.gz",
@@ -18,104 +18,130 @@ rule read_annotate__diamond__assign:
         cpus_per_task=esc("cpus", "read_annotate__diamond__assign"),
         partition=esc("partition", "read_annotate__diamond__assign"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__diamond__assign')['nvme']}",
-        attempt=lambda wildcards, attempt: attempt,
+        attempt=lambda wc, attempt: attempt,
     retries: len(get_escalation_order("read_annotate__diamond__assign")) - 1,
     params:
         max_target_seqs=params["read_annotate"]["diamond"]["max-target-seqs"],
         retries=len(get_escalation_order("read_annotate__diamond__assign")) - 1,
-        in_folder=FASTP,
-        out_folder=lambda w: DIAMOND / w.diamond_db,
         run_in_shm=config["diamond_shm"],
         copy_dbs=config["copy_dbs"],
         diamond_shm=DIAMONDSHM,
         diamond_nvme=DIAMONDNVME,
-        diamond_db_shm=lambda w: os.path.join(DIAMONDSHM, w.diamond_db),
         diamond_path=lambda w: os.path.basename(features["databases"]["diamond"][w.diamond_db]),
-        diamond_db_nvme=lambda w: os.path.join(DIAMONDNVME, w.diamond_db),
+        out_folder=lambda w: DIAMOND / w.diamond_db,
     container:
         docker["mag_annotate"],
     shell:
         r"""
-        set +u
-        
-        echo "Starting Diamond rule attempt {resources.attempt}" > {log}.{resources.attempt} 1>&2
-        mkdir --parents {params.out_folder} 2>> {log}.{resources.attempt} 1>&2
+        set -euo pipefail
 
-        # Set the bash variables, based on the snakemake input
+        mkdir -p {params.out_folder}
+
+        echo "Starting Diamond attempt {resources.attempt}" > {log}
+
         DB_SRC="{input.database}"
+        DB_FILE="{params.diamond_path}"
+        DB_BASE="${{DB_FILE%.dmnd}}"
+
         SHM="{params.diamond_shm}"
         NVME="{params.diamond_nvme}"
-        DB_SHM="{params.diamond_db_shm}"
-        DB_NVME="{params.diamond_db_nvme}"
 
-        # Disable /dev/shm if config says so
-        if [ "{params.run_in_shm}" != "True" ]; then
-            echo "Config disables /dev/shm use for this rule" 2>> {log}.{resources.attempt} 1>&2
-            SHM=""
-            DB_SHM=""
+        USE_SHM="{params.run_in_shm}"
+        COPY_DBS="{params.copy_dbs}"
+
+        # ===============================
+        # Decide staging location
+        # ===============================
+        DB_DST="$DB_SRC"
+        DATA_DIR=""
+
+        if [ "$COPY_DBS" = "True" ]; then
+            DB_SIZE=$(du -sb "$DB_SRC" | cut -f1)
+            SHM_AVAIL=$(df --output=avail -B1 "$SHM" 2>/dev/null | tail -1 || echo 0)
+            NVME_AVAIL=$(df --output=avail -B1 "$NVME" 2>/dev/null | tail -1 || echo 0)
+
+            echo "DB_SIZE=$DB_SIZE SHM_AVAIL=$SHM_AVAIL NVME_AVAIL=$NVME_AVAIL" >> {log}
+
+            if [ "$USE_SHM" = "True" ] && [ "$DB_SIZE" -lt "$SHM_AVAIL" ]; then
+                DATA_DIR="$SHM/{wildcards.diamond_db}"
+            elif [ "$DB_SIZE" -lt "$NVME_AVAIL" ]; then
+                DATA_DIR="$NVME/{wildcards.diamond_db}"
+            fi
         fi
 
-        # Set missing variables to empty sets ""
-        : "${{DB_SRC:=}}"
-        : "${{DB_SHM:=}}"
-        : "${{DB_NVME:=}}"
-        : "${{SHM:=}}"
-        : "${{NVME:=}}"
+        # ===============================
+        # Shared DB logic (LOCK / COUNTER)
+        # ===============================
+        if [ -n "$DATA_DIR" ]; then
+            LOCK="$DATA_DIR/.lock"
+            DONE="$DATA_DIR/.done"
+            COUNTER="$DATA_DIR/.counter"
 
-        set -u
+            mkdir -p "$DATA_DIR"
 
-        echo "DB_SRC: $DB_SRC, COPY_DBS: {params.copy_dbs}" 2>> {log}.{resources.attempt} 1>&2
+            # ---- Increment counter ----
+            (
+                flock -x 200
+                COUNT=0
+                [ -f "$COUNTER" ] && COUNT=$(cat "$COUNTER")
+                COUNT=$((COUNT + 1))
+                echo "$COUNT" > "$COUNTER"
+                echo "Diamond DB users: $COUNT" >> {log}
+            ) 200>"$COUNTER.lock"
 
-        if [ {params.copy_dbs} = "True" ]; then
-        
-            DB_SIZE=$(du -sb $DB_SRC | cut -f1)
-            SHM_AVAIL=$(timeout 10s df --output=avail -B1 "$SHM" 2>/dev/null | tail -1 || echo 0)
-            NVME_AVAIL=$(timeout 10s df --output=avail -B1 "$NVME" 2>/dev/null | tail -1 || echo 0)
-
-            echo "DB_SIZE: $DB_SIZE, SHM_AVAIL: $SHM_AVAIL, NVME_AVAIL: $NVME_AVAIL" 2>> {log}.{resources.attempt} 1>&2
-
-            if [ "$DB_SIZE" -lt "$SHM_AVAIL" ]; then
-                DB_DST="$DB_SHM"
-                echo "Set DB_DST to $DB_DST (SHM)" 2>> {log}.{resources.attempt} 1>&2
-            elif [ "$DB_SIZE" -lt "$NVME_AVAIL" ]; then
-                DB_DST="$DB_NVME"
-                echo "Set DB_DST to $DB_DST (NVME)" 2>> {log}.{resources.attempt} 1>&2
-            else
-                if [ {resources.attempt} -eq {params.retries} ]; then
-                    DB_DST="$DB_SRC"
-                    echo "Not enough space, use DB_SRC" 2>> {log}.{resources.attempt} 1>&2
+            # ---- Copy DB once ----
+            if [ ! -f "$DONE" ]; then
+                if mkdir "$LOCK" 2>/dev/null; then
+                    echo "This job copies Diamond DB to $DATA_DIR" >> {log}
+                    cp "$DB_SRC" "$DATA_DIR/"
+                    touch "$DONE"
+                    rmdir "$LOCK"
                 else
-                    echo "DB too large for SHM/NVME, aborting attempt {resources.attempt}" 2>> {log}.{resources.attempt} 1>&2
-                    exit 1
+                    echo "Waiting for Diamond DB copy..." >> {log}
+                    while [ ! -f "$DONE" ]; do
+                        sleep 5
+                    done
                 fi
             fi
 
-            if [ "$DB_DST"/{params.diamond_path} != "$DB_SRC" ]; then
-                mkdir -p "$DB_DST"
-                cp "$DB_SRC" "$DB_DST" 2>> {log}.{resources.attempt}
-                echo "Database copied to $DB_DST" 2>> {log}.{resources.attempt} 1>&2
-                
-                echo "Remove file extension from {params.diamond_path}" 2>> {log}.{resources.attempt} 1>&2
-                DB="{params.diamond_path}"
-                DB_BASE="${{DB%.dmnd}}"
-                
-                DB_LOC="$DB_DST/$DB_BASE"
-            fi
+            DB_LOC="$DATA_DIR/$DB_BASE"
         else
-            echo "Skipping DB copy - using source directly" 2>> {log}.{resources.attempt} 1>&2
             DB_LOC="$DB_SRC"
         fi
 
-        echo "Running Diamond using DB_LOC=$DB_LOC" 2>> {log}.{resources.attempt} 1>&2
+        echo "Running Diamond with DB_LOC=$DB_LOC" >> {log}
 
-        diamond blastx -d "$DB_LOC" -q {input.forwards} -o {output.out_R1} -p {threads} --max-target-seqs {params.max_target_seqs} 2>> {log}.{resources.attempt}
-        diamond blastx -d "$DB_LOC" -q {input.reverses} -o {output.out_R2} -p {threads} --max-target-seqs {params.max_target_seqs} 2>> {log}.{resources.attempt}
+        diamond blastx \
+            -d "$DB_LOC" \
+            -q {input.forwards} \
+            -o {output.out_R1} \
+            -p {threads} \
+            --max-target-seqs {params.max_target_seqs} >> {log} 2>&1
 
-        if [ "{params.run_in_shm}" = "True" ] && [ "$DB_DST" = "$DB_SHM" ]; then
-            rm -rfv "$DB_DST" 2>> {log}.{resources.attempt}
+        diamond blastx \
+            -d "$DB_LOC" \
+            -q {input.reverses} \
+            -o {output.out_R2} \
+            -p {threads} \
+            --max-target-seqs {params.max_target_seqs} >> {log} 2>&1
+
+        # ===============================
+        # Decrement counter + cleanup
+        # ===============================
+        if [ -n "$DATA_DIR" ]; then
+            (
+                flock -x 200
+                COUNT=$(cat "$COUNTER")
+                COUNT=$((COUNT - 1))
+                if [ "$COUNT" -le 0 ]; then
+                    echo "Last job, cleaning $DATA_DIR" >> {log}
+                    rm -rf "$DATA_DIR"
+                else
+                    echo "$COUNT jobs still using Diamond DB" >> {log}
+                    echo "$COUNT" > "$COUNTER"
+                fi
+            ) 200>"$COUNTER.lock"
         fi
-
-        mv {log}.{resources.attempt} {log}
         """
 
 

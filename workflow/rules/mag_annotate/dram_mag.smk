@@ -7,6 +7,7 @@ rule mag_annotate__dram_mag__annotate:
         #gtdbtk_summary=GTDBTK / "gtdbtk.summary.tsv",
         dram_db=features["databases"]["dram"],
     output:
+        genes_faa=DRAMMAG / "{assembly_id}" / "annotate" / "genes.faa",
         annotation=DRAMMAG / "{assembly_id}" / "annotate"  / "annotations.tsv",
         trnas=DRAMMAG / "{assembly_id}" / "annotate" / "trnas.tsv",
         rrnas=DRAMMAG / "{assembly_id}" / "annotate" / "rrnas.tsv",
@@ -42,6 +43,16 @@ rule mag_annotate__dram_mag__annotate:
                 --output_dir {params.tmp_dir} \
                 --threads {threads} \
         2>> {log} 1>&2
+        
+        # =========================
+        # Ensure expected outputs
+        # =========================
+        for f in annotations.tsv trnas.tsv rrnas.tsv; do
+            if [ ! -f "{params.tmp_dir}/$f" ]; then
+                echo "DRAM did not generate $f → creating empty file" >> {log}
+                touch "{params.tmp_dir}/$f"
+            fi
+        done        
     """
     
 rule mag_annotate__fix_dram_mag_annotations_scaffold:
@@ -100,8 +111,8 @@ rule mag_annotate__dram_mag__distill:
             --output_dir {params.outdir_tmp}/distill \
         2> {log} 1>&2
 
-        mv {params.outdir_tmp}/* {params.outdir}/ 2>> {log} 1>&2
-        rmdir {params.outdir_tmp} 2>> {log} 1>&2
+        mv {params.outdir_tmp}/distill/* {params.outdir}/ 2>> {log} 1>&2
+        rmdir {params.outdir_tmp}/distill 2>> {log} 1>&2
         """
 
 rule mag_annotate__dram_mags:

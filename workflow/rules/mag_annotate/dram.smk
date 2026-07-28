@@ -100,8 +100,8 @@ rule mag_annotate__dram__distill:
             --output_dir {params.outdir_tmp}/distill \
         2> {log} 1>&2
 
-        mv {params.outdir_tmp}/* {params.outdir}/ 2>> {log} 1>&2
-        rmdir {params.outdir_tmp} 2>> {log} 1>&2
+        mv {params.outdir_tmp}/distill/* {params.outdir}/ 2>> {log} 1>&2
+        rmdir {params.outdir_tmp}/distill 2>> {log} 1>&2
         """
 
 rule mag_annotate__dram:

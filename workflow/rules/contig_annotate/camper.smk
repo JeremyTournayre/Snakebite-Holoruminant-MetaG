@@ -27,7 +27,8 @@ rule contig_annotate__camper__annotate:
     shell:
         """
 
-        tmp_db_dir={params.nvme}/{params.sample}
+        #tmp_db_dir={params.nvme}/{params.sample}
+        tmp_db_dir={params.out_dir}/camper_db_tmp
         mkdir -p $tmp_db_dir
 
         # Copy CAMPER DB locally to tmpdir_camper to avoid collisions

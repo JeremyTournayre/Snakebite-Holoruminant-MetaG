@@ -3,7 +3,9 @@ rule mag_annotate__eggnog:
     input:
         contigs=DREP / "dereplicated_genomes.fa.gz",
     output:
-        directory(EGGNOG) ,
+        seed = EGGNOG / "eggnog.emapper.seed_orthologs",
+        genepred_fasta = EGGNOG / "eggnog.emapper.genepred.fasta",
+        genepred_gff   = EGGNOG / "eggnog.emapper.genepred.gff"
     log:
         protected(EGGNOG / "eggnog.log"),
     container:
@@ -23,10 +25,9 @@ rule mag_annotate__eggnog:
     retries: len(get_escalation_order("mag_annotate__eggnog"))
     shell:
         """
-         cp -r {params.db}/* $TMPDIR  2>> {log} 1>&2;
-        
         emapper.py -m diamond \
-                   --data_dir $TMPDIR \
+                   --override \
+                   --data_dir {params.db} \
                    --itype metagenome \
                    --genepred prodigal \
                    --dbmem \
@@ -37,4 +38,26 @@ rule mag_annotate__eggnog:
                    --output_dir {params.out_dir} \
                    -o {params.prefix}  \
                    2>> {log} 1>&2;
+        """
+
+checkpoint mag_annotate__eggnog_split:
+    """
+    Split the MAG eggnog seed_orthologs into chunks (equivalent to contig cut_prodigal)
+    """
+    input:
+        seed = EGGNOG / "eggnog.emapper.seed_orthologs"
+    output:
+        directory(EGGNOG / "Chunks")
+    log:
+        EGGNOG / "eggnog_split.log"
+    params:
+        chunk_size = params["mag_annotate"]["eggnog"]["split"],
+        prefix = EGGNOG / "Chunks" / "seed.chunk."
+    threads: 1
+    shell:
+        """
+        mkdir -p {output}
+
+        split -d -l {params.chunk_size} {input.seed} {params.prefix} --additional-suffix=.seed_orthologs
+
         """

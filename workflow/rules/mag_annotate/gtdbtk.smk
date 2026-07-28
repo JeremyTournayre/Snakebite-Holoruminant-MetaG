@@ -5,6 +5,7 @@ rule mag_annotate__gtdbtk__classify:
         database=features["databases"]["gtdbtk"],
     output:
         summary=GTDBTK / "gtdbtk.summary.tsv",
+        bac120=GTDBTK / "gtdbtk.bac120.summary.tsv",
         align=GTDBTK / "align.tar.gz",
         classify=GTDBTK / "classify.tar.gz",
         identify=GTDBTK / "identify.tar.gz",

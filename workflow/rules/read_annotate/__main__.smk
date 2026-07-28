@@ -8,6 +8,7 @@ include: "phyloflash.smk"
 include: "nonpareil.smk"
 include: "singlem.smk"
 include: "sylph.smk"
+#include: "kofam_rumen.smk"
 
 rule read_annotate:
     """Run the preprocessing steps, included he evaluation ones"""
@@ -21,3 +22,8 @@ rule read_annotate:
         rules.read_annotate__phyloflash.input,
         rules.read_annotate__singlem.input,
         rules.read_annotate__sylph.input,
+#        rules.read_annotate__kofam_rumen.input,
+#        *(
+#            [rules.read_annotate__sylph_taxonomy.input]
+#            if SYLPH_IS_RUMEN_CUSTOM else []
+#        ),

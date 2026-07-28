@@ -36,11 +36,48 @@ rule read_annotate__sylph_profile:
         mv {log}.{resources.attempt} {log}
         """
 
+SYLPH_IS_RUMEN_CUSTOM = "rumen_db" in str(features["databases"]["sylph"])
 
 rule read_annotate__sylph:
     """Run Sylph"""
     input:
         [
-            PRE_SYLPH / f"{sample_id}.{library_id}.profiling.tsv"
+            (
+                PRE_SYLPH / f"{sample_id}.{library_id}.profiling_with_taxonomy.tsv"
+                if SYLPH_IS_RUMEN_CUSTOM else
+                PRE_SYLPH / f"{sample_id}.{library_id}.profiling.tsv"
+            )
             for sample_id, library_id in SAMPLE_LIBRARY
         ]
+
+
+# ── Règle : ajout taxonomie rumen aux résultats Sylph ────────────────────────
+if SYLPH_IS_RUMEN_CUSTOM:
+
+    rule read_annotate__sylph_add_taxonomy:
+        """Ajoute la taxonomie rumen custom aux résultats Sylph (un fichier par sample)"""
+        input:
+            profiling=PRE_SYLPH / "{sample_id}.{library_id}.profiling.tsv",
+        output:
+            PRE_SYLPH / "{sample_id}.{library_id}.profiling_with_taxonomy.tsv",
+        log:
+            PRE_SYLPH / "{sample_id}.{library_id}.add_taxonomy.log",
+        params:
+            taxo_dir=str(Path(features["databases"]["sylph"]).parent.parent / "DB" / "taxonomy"),
+            folder=config["pipeline_folder"],
+        shell:
+            """
+            python {params.folder}/workflow/scripts/sylph_add_taxonomy.py \
+                --sylph {input.profiling} \
+                --taxo-dir {params.taxo_dir} \
+                --output {output} \
+                > {log} 2>&1
+            """
+
+    rule read_annotate__sylph_taxonomy:
+        """Collect all Sylph taxonomy-annotated profiles"""
+        input:
+            [
+                PRE_SYLPH / f"{sample_id}.{library_id}.profiling_with_taxonomy.tsv"
+                for sample_id, library_id in SAMPLE_LIBRARY
+            ]

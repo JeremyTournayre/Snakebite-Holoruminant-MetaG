@@ -29,6 +29,7 @@ KRAKEN2 = READ_ANNOT / "kraken2/"
 KRONA = READ_ANNOT / "krona/"
 DIAMOND = READ_ANNOT / "diamond/"
 PRE_SYLPH = READ_ANNOT / "sylph/"
+PRE_KOFAM_RUMEN = READ_ANNOT / "kofam_rumen/"
 
 # assemble
 ASSEMBLE = Path("results/assemble/")
@@ -69,6 +70,8 @@ EGGNOG = ANN / "eggnog"
 PHYLOPHLAN = ANN / "phylophlan"
 PROTEINORTHO = ANN / "proteinortho"
 SYLPH = ANN / "sylph"
+GTDBTK_ALLBINS = ANN / "gtdbtk_allbins"
+EGGNOGMAG      = ANN / "eggnog_mags"
 
 # contig annotation
 CONTIG = Path("results/contig_annotate/")
@@ -87,3 +90,6 @@ REPORT = Path("reports/")
 PIPELINE_REPORT = Path("Rreports/")
 REPORT_STEP = REPORT / "step/"
 REPORT_SAMPLE = REPORT / "library/"
+
+# METAX
+METAX = Path("results/metax/")
