@@ -43,6 +43,14 @@ rule mag_annotate__dram__annotate:
                 --threads {threads} \
                 --gtdb_taxonomy {input.gtdbtk_summary} \
         2>> {log} 1>&2
+        
+        for f in annotations.tsv trnas.tsv rrnas.tsv; do
+          if [ ! -f "{params.tmp_dir}/$f" ]; then
+            echo "DRAM did not generate $f -> creating empty file" >> {log}
+            touch "{params.tmp_dir}/$f"
+          fi
+        done
+
     """
 
 rule mag_annotate__fix_dram_annotations_scaffold:
@@ -88,20 +96,23 @@ rule mag_annotate__dram__distill:
     retries: len(get_escalation_order("mag_annotate__dram__distill"))
     params:
         config=config["dram-config"],
-        outdir_tmp=DRAM,
+        outdir_tmp=DRAM / "distill_tmp",
         outdir=DRAM,
     shell:
         """
+        # This is maybe needed as snakemake creates the folders, but dram relies on creating it itself
+        rm -rf {params.outdir_tmp} 2> {log} 1>&2
+        
         DRAM.py distill \
             --config_loc {params.config} \
             --input_file {input.annotations} \
             --rrna_path {input.rrnas} \
             --trna_path {input.trnas} \
-            --output_dir {params.outdir_tmp}/distill \
-        2> {log} 1>&2
+            --output_dir {params.outdir_tmp} \
+        2>> {log} 1>&2
 
-        mv {params.outdir_tmp}/distill/* {params.outdir}/ 2>> {log} 1>&2
-        rmdir {params.outdir_tmp}/distill 2>> {log} 1>&2
+        mv {params.outdir_tmp}/* {params.outdir}/ 2>> {log} 1>&2
+        rm -rf {params.outdir_tmp} 2>> {log} 1>&2
         """
 
 rule mag_annotate__dram:

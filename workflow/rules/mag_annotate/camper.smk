@@ -27,7 +27,17 @@ rule mag_annotate__camper__annotate:
     retries: len(get_escalation_order("mag_annotate__camper__annotate"))
     shell:
         """
-        tmp_db_dir={params.camper_db}
+        # Setup tmp-folder, depending whether there is nvme space or not.
+
+        if [[ -n {params.nvme} ]]; then
+            tmp_db_dir={params.nvme}
+        else
+            tmp_db_dir={params.camper_dir}/camper_db_tmp
+        fi
+
+        mkdir -p $tmp_db_dir
+        cp {params.camper_db}/* $tmp_db_dir 2>> {log} 1>&2
+        
         tmpdir={params.camper_dir}/tmp
         
         # This is a strange camper requiredment, when it runs in snakemake and folders might be created...

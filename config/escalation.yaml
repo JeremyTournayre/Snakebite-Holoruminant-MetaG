@@ -42,6 +42,8 @@ contig_annotate__cramToBam: small
 contig_annotate__featurecounts_run: medium
 contig_annotate__prodigal_run: medium
 contig_annotate__cut_prodigal: medium
+contig_annotate__ncyc__prepare_input: small
+contig_annotate__ncyc__run: medium
 
 helpers__fastqc: small
 helpers__samtools__faidx_fa: small
@@ -75,6 +77,8 @@ read_annotate__kraken2__assign: full_node
 read_annotate__krona__visualize: medium
 read_annotate__metaphlan__condense: small
 read_annotate__metaphlan__run: medium
+read_annotate__ncyc__prepare_input: small
+read_annotate__ncyc__run: medium
 read_annotate__nonpareil__aggregate: small
 read_annotate__nonpareil__run: medium
 read_annotate__phyloflash__condense: small
@@ -87,8 +91,15 @@ read_annotate__sylph_profile: medium
 
 reference__hosts__recompress: small
 
+report__assemble: small
+report__contig_annotate: small
+report__mag_annotate: small
 report__preprocess: small
+report__quantify: small
+report__read_annotate: small
 report__reads: small
+report__reference: small
+
 report__sample__multiqc: small
 report__step__reads: small
 report__step__preprocess: small

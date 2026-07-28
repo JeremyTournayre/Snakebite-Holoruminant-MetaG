@@ -12,7 +12,7 @@ rule mag_annotate__dram_mag__annotate:
         trnas=DRAMMAG / "{assembly_id}" / "annotate" / "trnas.tsv",
         rrnas=DRAMMAG / "{assembly_id}" / "annotate" / "rrnas.tsv",
     log:
-        DRAM / "{assembly_id}" / "annotate_{assembly_id}.log",
+        DRAMMAG / "{assembly_id}" / "annotate_{assembly_id}.log",
     container:
         docker["dram"]
     params:
@@ -44,15 +44,13 @@ rule mag_annotate__dram_mag__annotate:
                 --threads {threads} \
         2>> {log} 1>&2
         
-        # =========================
-        # Ensure expected outputs
-        # =========================
         for f in annotations.tsv trnas.tsv rrnas.tsv; do
-            if [ ! -f "{params.tmp_dir}/$f" ]; then
-                echo "DRAM did not generate $f → creating empty file" >> {log}
-                touch "{params.tmp_dir}/$f"
-            fi
-        done        
+          if [ ! -f "{params.tmp_dir}/$f" ]; then
+            echo "DRAM did not generate $f -> creating empty file" >> {log}
+            touch "{params.tmp_dir}/$f"
+          fi
+        done
+
     """
     
 rule mag_annotate__fix_dram_mag_annotations_scaffold:
@@ -100,23 +98,26 @@ rule mag_annotate__dram_mag__distill:
     params:
         config=config["dram-config"],
         outdir=lambda wildcards: f"{DRAMMAG}/{wildcards.assembly_id}",
-        outdir_tmp=lambda wildcards: f"{DRAMMAG}/{wildcards.assembly_id}/",
+        outdir_tmp=lambda wildcards: f"{DRAMMAG}/{wildcards.assembly_id}/distill_tmp",
     shell:
         """
+        # This is maybe needed as snakemake creates the folders, but dram relies on creating it itself
+        rm -rf {params.outdir_tmp} 2> {log} 1>&2
+        
         DRAM.py distill \
             --config_loc {params.config} \
             --input_file {input.annotation} \
             --rrna_path {input.rrnas} \
             --trna_path {input.trnas} \
-            --output_dir {params.outdir_tmp}/distill \
+            --output_dir {params.outdir_tmp} \
         2> {log} 1>&2
 
-        mv {params.outdir_tmp}/distill/* {params.outdir}/ 2>> {log} 1>&2
-        rmdir {params.outdir_tmp}/distill 2>> {log} 1>&2
+        mv {params.outdir_tmp}/* {params.outdir}/ 2>> {log} 1>&2
+        rm -rf {params.outdir_tmp}/ 2>> {log} 1>&2
         """
 
 rule mag_annotate__dram_mags:
-    """Run Bakta over the dereplicated mags"""
+    """Run DRAM over the sample-wise mags"""
      input:
         #expand(DRAMMAG / "{assembly_id}" / "annotate"  / "annotations.tsv", assembly_id=ASSEMBLIES),
         expand(DRAMMAG / "{assembly_id}" / "genome_stats.tsv", assembly_id=ASSEMBLIES),

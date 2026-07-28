@@ -53,10 +53,6 @@ rule contig_annotate__eggnog_orthology_chunk:
         done = CONTIG_EGGNOG / "{assembly_id}/Chunks/prodigal.chunk.{i}.emapper.annotations.done"
     log:
         CONTIG_EGGNOG / "{assembly_id}/Chunks/prodigal.chunk.{i}.emapper.annotations.log"
-    params:
-        fa = features["databases"]["eggnog"],
-        out = lambda wc: f"prodigal.chunk.{wc.i}",
-        outdir = lambda wc: CONTIG_EGGNOG / f"{wc.assembly_id}/Chunks"
     threads: esc("cpus", "contig_annotate__eggnog_orthology_chunk")
     resources:
         runtime=esc("runtime", "contig_annotate__eggnog_orthology_chunk"),
@@ -68,39 +64,64 @@ rule contig_annotate__eggnog_orthology_chunk:
     retries: len(get_escalation_order("contig_annotate__eggnog_orthology_chunk"))    
     container:
         docker["mag_annotate"]
+    params:
+        fa = features["databases"]["eggnog"],
+        out = lambda wc: f"prodigal.chunk.{wc.i}",
+        outdir = lambda wc: CONTIG_EGGNOG / f"{wc.assembly_id}/Chunks",
+        run_in_shm=config["eggnog_shm"],
+        copy_dbs=config["copy_dbs"],
+        shm=config["shm_storage"],
+        nvme=config["nvme_storage"],
     shell: """
-        DATA_DIR="/dev/shm/eggnog_data_holorumin"
-        LOCK_FILE="$DATA_DIR/.lock"
-        DONE_FILE="$DATA_DIR/.done"
-        COUNTER_FILE="$DATA_DIR/.counter"
-
-        mkdir -p $DATA_DIR
-
-        # === Increment counter safely ===
-        (
-            flock -x 200
-            COUNT=0
-            if [ -f "$COUNTER_FILE" ]; then
-                COUNT=$(cat "$COUNTER_FILE")
-            fi
-            COUNT=$((COUNT + 1))
-            echo $COUNT > "$COUNTER_FILE"
-            echo "Incremented counter: $COUNT jobs using DB" >> {log}
-        ) 200>"$COUNTER_FILE.lock"
-
-        # === Copy DB if not already done ===
-        if [ ! -f "$DONE_FILE" ]; then
-            if mkdir "$LOCK_FILE" 2>/dev/null; then
-                echo "This job has the lock, copying DB..." >> {log}
-                cp -r {params.fa}/* $DATA_DIR/ >> {log} 2>&1
-                touch "$DONE_FILE"
-                rmdir "$LOCK_FILE"
+     
+      # check if dbs should be copied, otherwise use the original location
+        if [ {params.copy_dbs} = "True" ]; then
+        
+          # check first which destination to use (shm or nvme)
+            if [ "{params.run_in_shm}" = "True" ]; then
+              echo "Config allowed /dev/shm use for this rule" 2>> {log} 1>&2
+              DATA_DIR="{params.shm}/eggnog_data"
             else
-                echo "Another job is copying the DB, waiting..." >> {log}
-                while [ ! -f "$DONE_FILE" ]; do
-                    sleep 30
-                done
+              echo "Config disallowed /dev/shm use for this rule, using nvme space instead" 2>> {log} 1>&2
+              DATA_DIR="{params.nvme}/eggnog_data"
+            fi          
+            
+          # Initiate the copy and chunk running
+            LOCK_FILE="$DATA_DIR/.lock"
+            DONE_FILE="$DATA_DIR/.done"
+            COUNTER_FILE="$DATA_DIR/.counter"
+    
+            mkdir -p $DATA_DIR
+    
+            # === Increment counter safely ===
+            (
+                flock -x 200
+                COUNT=0
+                if [ -f "$COUNTER_FILE" ]; then
+                    COUNT=$(cat "$COUNTER_FILE")
+                fi
+                COUNT=$((COUNT + 1))
+                echo $COUNT > "$COUNTER_FILE"
+                echo "Incremented counter: $COUNT jobs using DB" >> {log}
+            ) 200>"$COUNTER_FILE.lock"
+    
+            # === Copy DB if not already done ===
+            if [ ! -f "$DONE_FILE" ]; then
+                if mkdir "$LOCK_FILE" 2>/dev/null; then
+                    echo "This job has the lock, copying DB..." >> {log}
+                    cp -r {params.fa}/* $DATA_DIR/ >> {log} 2>&1
+                    touch "$DONE_FILE"
+                    rmdir "$LOCK_FILE"
+                else
+                    echo "Another job is copying the DB, waiting..." >> {log}
+                    while [ ! -f "$DONE_FILE" ]; do
+                        sleep 30
+                    done
+                fi
             fi
+      # If db copy is not requested, use the original location
+        else 
+            DATA_DIR={params.fa}
         fi
 
         # === Run emapper ===

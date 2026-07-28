@@ -30,6 +30,7 @@ KRONA = READ_ANNOT / "krona/"
 DIAMOND = READ_ANNOT / "diamond/"
 PRE_SYLPH = READ_ANNOT / "sylph/"
 PRE_KOFAM_RUMEN = READ_ANNOT / "kofam_rumen/"
+NCYC = READ_ANNOT / "ncyc"
 
 # assemble
 ASSEMBLE = Path("results/assemble/")
@@ -78,6 +79,7 @@ CONTIG = Path("results/contig_annotate/")
 CONTIG_CAMPER = CONTIG / "camper"
 CONTIG_DIAMOND = CONTIG / "diamond"
 CONTIG_HMMER = CONTIG / "hmmer"
+CONTIG_NCYC = CONTIG / "ncyc"
 CONTIG_PRODIGAL = CONTIG / "prodigal"
 CONTIG_EGGNOG = CONTIG / "eggnog"
 CONTIG_EGGNOG7 = CONTIG / "eggnog7"

@@ -1,9 +1,24 @@
 # CHANGELOG
 ##############
 
-
 Version 0.4.*: 
-------------
+-----------
+63: Added NCyc also to the contig annotate extra module, using the prodigal protein output
+62: Added the tool NCyc to the pipeline (to module read_annotate_extra)
+61: Accidental rerun of rules triggered by an indexing step in contig_annotate fixed (issue #47)
+60: camper in mag annotate crashed in case no nvme drive was given, this is fixed now like in contig case (Issue #52)
+59: In case DRAM does not find certains types, we create now empty output files to keep going (issue #44)
+58: Metaspades slot system introduced (Issue #56)
+57: .done-output added to mag_annotate eggnog (Issue #55)
+56: Type in description fixed
+55: DRAM_MAG log folder typo fixed (Issue #46)
+54: Improved escalation retry handling (Issue #45)
+53: The pipeline fetches now its current version from the changelog file to display instead of having it hardcoded
+52: Updated the run script to avoid double definition of pipeline-folder
+51: report skeletons added for all modules
+50: Changed name to Snakebite-Holoruminant-MetaG
+49: Moved large parts of the README.md to dedicated files located in docs/ 
+48: More adjustments to dram distill output folder names
 47: Added the eggnog 7 database for annotation
 46: Adjusted the DRAM/distill path output for the tmp folder, which mihgt create problems on some systems.
 45: Added more debug messages and graceful waiting time to rule read_annotate__kraken2__assign 

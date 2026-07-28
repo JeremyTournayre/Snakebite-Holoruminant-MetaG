@@ -4,6 +4,7 @@ include: "kraken2.smk"
 include: "krona.smk"
 include: "humann.smk"
 include: "metaphlan.smk"
+include: "ncyc.smk"
 include: "phyloflash.smk"
 include: "nonpareil.smk"
 include: "singlem.smk"
@@ -27,3 +28,8 @@ rule read_annotate:
 #            [rules.read_annotate__sylph_taxonomy.input]
 #            if SYLPH_IS_RUMEN_CUSTOM else []
 #        ),
+
+rule read_annotate_extra:
+    """Run the preprocessing steps, included he evaluation ones"""
+    input:
+        rules.read_annotate__ncyc.input,

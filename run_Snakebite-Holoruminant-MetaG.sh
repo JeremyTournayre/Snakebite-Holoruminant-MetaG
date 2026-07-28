@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Set the project relevant paths
 ################################################################################
 pipelineFolder="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/Pipeline-Holoruminant-Meta"
@@ -37,6 +39,35 @@ mkdir -p $APPTAINER_CACHEDIR
 #          --rulegraph | dot -T png > $projectFolder/workflow.png
 
 
+# Helper: read YAML value (simple key: value, no nesting)
+################################################################################
+read_yaml() {
+    local key="$1"
+    local file="$2"
+    grep -E "^[[:space:]]*${key}:" "$file" \
+        | sed -E "s/^[^:]+:[[:space:]]*//" \
+        | tr -d '"'
+}
+
+# Helper: Extract pipeline_folder from pipeline config
+################################################################################
+pipelineFolder="$(read_yaml pipeline_folder "$configFile")"
+metaspades_slots="$(read_yaml metaspades_slots "$configFile")"
+
+if [[ -z "$pipelineFolder" ]]; then
+    echo "ERROR: pipeline_folder not defined in $pipelineConfigPath" >&2
+    exit 1
+fi
+
+if [[ -z "$metaspades_slots" ]]; then
+    echo "ERROR: metaspades_slots not defined in $pipelineConfigPath" >&2
+    exit 1
+fi
+
+echo "config file      : ${configFile}"
+echo "Project folder   : ${projectFolder}"
+
+
 # Run the pipeline (singularity/apptainer)
 # Important adjustments: 
 # --jobs, how many parallel jobs do you allow on your system for this project
@@ -58,7 +89,7 @@ snakemake -s $pipelineFolder/workflow/Snakefile \
           --singularity-prefix $projectFolder/docker_images/ \
           --latency-wait 60 \
           --scheduler greedy \
-          --resources metaspades_slots=10 \
+          --resources metaspades_slots=$metaspades_slots \
           --restart-times 0 \
           --retries 0  \
           $@

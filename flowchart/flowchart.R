@@ -30,6 +30,9 @@ graph <- grViz("
     read_annot_sylph [label = 'Sylph, v0.7.0 \n gtdb-r220-c200-dbv1']
     read_annot_diamond [label = 'Diamond, v.2.1.8 \n Cazy 07142024']
     read_annot_krona [label = 'Krona, v.x.x.x']
+    
+    # Define the read_annotate_extra nodes
+    read_annot_ncyc [label = 'NCycDB \n Jul2019']
 
     # Define assembly nodes
     ass_bowtie2 [label = 'Bowtie2, v2.5.1']
@@ -64,6 +67,9 @@ graph <- grViz("
     contig_annotate_hmmer [label = 'HMMER, v3.3.2 \n HydDB 20251126 (2022)']
     contig_annotate_diamond [label = 'Diamond, v.2.1.8 \n HydDB 20251126 (2022)']
     contig_annotate_feature [label = 'FeatureCounts, v2.0.1']
+
+    # Define the contig_annotate_extra nodes
+    contig_annotate_ncyc [label = 'NCycDB \n Jul2019']
     
     # Define quantify nodes
     quantify_bowtie2 [label = 'Bowtie2, v2.5.1']
@@ -97,6 +103,7 @@ graph <- grViz("
     pre_bowtie2 -> ass_assembler_rep
     pre_bowtie2 -> read_annot_diamond
     pre_bowtie2 -> read_annot_sylph
+    pre_bowtie2 -> read_annot_ncyc
     read_annot_kraken2 -> read_annot_krona
     
     # Define edges for assembly
@@ -148,6 +155,9 @@ graph <- grViz("
     ass_assembly -> contig_annotate_bowtie
     contig_annotate_bowtie -> contig_annotate_feature
     
+    # Define the edges for contig annotate extra
+    contig_annotate_prodigal -> contig_annotate_ncyc
+    
     # Define edges between nodes and the representative node
     ass_assembler_rep -> ass_megahit
     ass_assembler_rep -> ass_metaspades
@@ -165,21 +175,36 @@ graph <- grViz("
     }
 
     # Define a subgraph to group preprocessing nodes
-    subgraph cluster_read_annot {
-      label = 'Read Annotate'
-      style = dashed
-      color = lightgray
-
-      read_annot_kraken2
-      read_annot_krona
-      read_annot_humann
-      read_annot_metaphlan
-      read_annot_phyloflash
-      read_annot_nonpareil
-      read_annot_singlem
-      read_annot_diamond
-      read_annot_sylph
-    }
+    # Define a subgraph to group assembler nodes
+      subgraph cluster_read_annot_all {
+        label = ''
+        style = dashed
+        color = lightgray
+        
+        subgraph cluster_read_annot {
+          label = 'Read Annotate'
+          style = dashed
+          color = lightgray
+    
+          read_annot_kraken2
+          read_annot_krona
+          read_annot_humann
+          read_annot_metaphlan
+          read_annot_phyloflash
+          read_annot_nonpareil
+          read_annot_singlem
+          read_annot_diamond
+          read_annot_sylph
+        }
+        
+          subgraph cluster_read_annot_extra {
+          label = 'Read Annotate Extra'
+          style = dashed
+          color = lightgray
+        
+          read_annot_ncyc
+          }
+      }
 
     # Define a subgraph to group assembly nodes
     subgraph cluster_assemble {
@@ -240,19 +265,33 @@ graph <- grViz("
     }
 
     # Define a subgraph to group contig annotate nodes
-    subgraph cluster_contig_annotate {
-      label = 'Contig annotate'
-      style = dashed
-      color = lightgray
-
-      contig_annotate_prodigal
-      contig_annotate_camper
-      contig_annotate_eggnog
-      contig_annotate_eggnog7
-      contig_annotate_bowtie
-      contig_annotate_feature
-      contig_annotate_hmmer
-      contig_annotate_diamond
+    subgraph cluster_contig_annot_all {
+        label = ''
+        style = dashed
+        color = lightgray
+    
+        subgraph cluster_contig_annotate {
+          label = 'Contig annotate'
+          style = dashed
+          color = lightgray
+    
+          contig_annotate_prodigal
+          contig_annotate_camper
+          contig_annotate_eggnog
+          contig_annotate_eggnog7
+          contig_annotate_bowtie
+          contig_annotate_feature
+          contig_annotate_hmmer
+          contig_annotate_diamond
+        }
+      
+        subgraph cluster_contig_annot_extra {
+          label = 'Contig Annotate Extra'
+          style = dashed
+          color = lightgray
+        
+          contig_annotate_ncyc
+          }
     }
 
     # Define a subgraph to group annotation nodes
