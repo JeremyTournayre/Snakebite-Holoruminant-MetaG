@@ -1,25 +1,25 @@
 # Set the project relevant paths
 ################################################################################
-pipelineFolder="/users/fischerd/git/Pipeline-Holoruminant-Meta"
-projectFolder="/scratch/project_2009831/Pipe_dev"
+pipelineFolder="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/Pipeline-Holoruminant-Meta"
+projectFolder="$(pwd)"
 
 # Setup the server profile. You can copy the default profile and adjust it to your hpc.
 # Check that the generic command meets the requirements from your (slurm) executor.
 # It is recommended to copy the Profile folder to a new folder with the name of
 # your cluster
 ################################################################################
-Profile=$projectFolder/config/profiles/Puhti
+Profile=$pipelineFolder/config/profiles/Migale
 
 # Make Snakemake available. Here is an example, how it would be loaded with the
 # module system, but other systems might have it available per standard installation.
 # In that case you can comment out the follwing line
 ################################################################################
-module load snakemake/9.11.6
+# module load snakemake/9.11.6
 
 # For use with Apptainer, set these variables
 ################################################################################
-export APPTAINER_TMPDIR="/scratch/project_2009831/tmp"
-export APPTAINER_CACHEDIR="/scratch/project_2009831/tmp"
+export APPTAINER_TMPDIR="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/tmp"
+export APPTAINER_CACHEDIR="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/tmp"
 mkdir -p $APPTAINER_TMPDIR
 mkdir -p $APPTAINER_CACHEDIR
 
@@ -42,7 +42,7 @@ mkdir -p $APPTAINER_CACHEDIR
 # --jobs, how many parallel jobs do you allow on your system for this project
 # --singularity-args, are the important folders and paths bound to the containers? If you are unsure, go with the defaults and check for errors
 ################################################################################
-mkdir -p slurm_out
+# mkdir -p slurm_out
 mkdir -p $projectFolder/tmp
 
 # I removed this part:
@@ -54,8 +54,11 @@ snakemake -s $pipelineFolder/workflow/Snakefile \
           --use-singularity \
           --configfile $projectFolder/config/config.yaml \
           --profile $Profile \
-          --singularity-args "-B /scratch,/projappl,/users,/dev/shm:/dev/shm,/run,$projectFolder/tmp:/tmp" \
+          --singularity-args "-B /work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/tmp,/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/resources,/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/Pipeline-Holoruminant-Meta/workflow/scripts" \
           --singularity-prefix $projectFolder/docker_images/ \
           --latency-wait 60 \
           --scheduler greedy \
+          --resources metaspades_slots=10 \
+          --restart-times 0 \
+          --retries 0  \
           $@

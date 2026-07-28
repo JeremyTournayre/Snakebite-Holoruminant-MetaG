@@ -10,4 +10,4 @@ default-resources:
     gres: "'nvme:0'"
     metaspades_slots: 0
 
-cluster-generic-submit-cmd: "/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/submit.sh {resources.runtime} {resources.mem_mb} {resources.cpus_per_task} -q {resources.partition} -A {resources.slurm_account} -N job_{jobid}-{rule} -o jobs_log/job_{jobid}-{rule}.out -e jobs_log/job_{jobid}-{rule}.err"
+cluster-generic-submit-cmd: "/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/Pipeline-Holoruminant-Meta/submit.sh {resources.runtime} {resources.mem_mb} {resources.cpus_per_task} -q {resources.partition} -A {resources.slurm_account} -N job_{jobid}-{rule} -o jobs_log/job_{jobid}-{rule}.out -e jobs_log/job_{jobid}-{rule}.err"

@@ -2,8 +2,8 @@
 """
 sylph_add_taxonomy.py
 ---------------------
-Ajoute la taxonomie GTDB aux résultats Sylph en cherchant dans les 4 fichiers
-de taxonomie de la BDD rumen custom. Produit un fichier par sample.
+Adds GTDB taxonomy to Sylph results by looking it up in the 4 taxonomy
+files of the custom rumen database. Produces one file per sample.
 
 Usage (Snakemake):
     python sylph_add_taxonomy.py \
@@ -19,7 +19,7 @@ from pathlib import Path
 
 
 def clean_genome_name(path_or_name: str) -> str:
-    """Extrait le nom de base sans extension connue (.fa, .fna, .fasta, .ok)."""
+    """Extracts the base name without known extensions (.fa, .fna, .fasta, .ok)."""
     name = Path(path_or_name).name
     name = re.sub(r'\.(fasta|fna|fa)$', '', name, flags=re.IGNORECASE)
     name = re.sub(r'\.ok$', '', name)
@@ -28,8 +28,8 @@ def clean_genome_name(path_or_name: str) -> str:
 
 def load_taxonomy(taxo_dir: str) -> dict:
     """
-    Retourne un dict {genome_name: taxonomy_string} en fusionnant les 4 sources.
-    Priorité : SupaCow > RBAG > Hungate > RCG
+    Returns a dict {genome_name: taxonomy_string} by merging the 4 sources.
+    Priority: SupaCow > RBAG > Hungate > RCG
     """
     taxo = {}
     taxo_dir = Path(taxo_dir)
@@ -104,7 +104,7 @@ def load_taxonomy(taxo_dir: str) -> dict:
 
 
 def process_sylph_file(sylph_file: str, taxo: dict, output: str):
-    """Joint un fichier Sylph avec la taxonomie et écrit le fichier de sortie."""
+    """Joins a Sylph file with taxonomy and writes the output file."""
     out_rows = []
     not_found = set()
 
@@ -147,18 +147,18 @@ def process_sylph_file(sylph_file: str, taxo: dict, output: str):
             writer.writeheader()
             writer.writerows(out_rows)
 
-    print(f"[sylph_add_taxonomy] {len(out_rows)} lignes → {output}")
+    print(f"[sylph_add_taxonomy] {len(out_rows)} rows -> {output}")
     if not_found:
-        print(f"[sylph_add_taxonomy] ⚠️  {len(not_found)} génomes sans taxonomie : "
+        print(f"[sylph_add_taxonomy] Warning: {len(not_found)} genomes without taxonomy: "
               + ", ".join(sorted(not_found)[:5])
               + ("..." if len(not_found) > 5 else ""))
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sylph",    required=True, help="Fichier .profiling.tsv Sylph")
-    parser.add_argument("--taxo-dir", required=True, help="Dossier des 4 fichiers taxonomie")
-    parser.add_argument("--output",   required=True, help="Fichier de sortie TSV")
+    parser.add_argument("--sylph",    required=True, help="Sylph .profiling.tsv file")
+    parser.add_argument("--taxo-dir", required=True, help="Directory containing the 4 taxonomy files")
+    parser.add_argument("--output",   required=True, help="Output TSV file")
     args = parser.parse_args()
 
     taxo = load_taxonomy(args.taxo_dir)
