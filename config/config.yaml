@@ -2,7 +2,7 @@
 ##
 ## File configuration configuration
 
-pipeline_folder: "/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/Pipeline-Holoruminant-Meta/"
+pipeline_folder: "/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/Pipeline-Holoruminant-Meta/"
 features-file: "config/features.yaml"
 params-file: "config/params.yaml"
 docker-file: "config/.docker.yml"
