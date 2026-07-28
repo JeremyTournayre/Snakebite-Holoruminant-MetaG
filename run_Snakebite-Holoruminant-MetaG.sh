@@ -4,6 +4,7 @@
 ################################################################################
 pipelineFolder="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/Pipeline-Holoruminant-Meta"
 projectFolder="$(pwd)"
+configFile="${projectFolder}/config/config.yaml"
 
 # Setup the server profile. You can copy the default profile and adjust it to your hpc.
 # Check that the generic command meets the requirements from your (slurm) executor.

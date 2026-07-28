@@ -7,11 +7,19 @@ mag_annotate__dram__distill: small
 mag_annotate__dram_mag__annotate: large
 mag_annotate__dram_mag__distill: medium
 mag_annotate__eggnog: large
+mag_annotate__eggnog_annotations_chunk: large
+mag_annotate__eggnog_split: small
+mag_annotate__eggnog_merge_annotations: small
 mag_annotate__fix_dram_mag_annotations_scaffold: small
 mag_annotate__gtdbtk__classify: large
 mag_annotate__phylophlan: medium
 mag_annotate__proteinortho: medium
 mag_annotate__quast: medium
+mag_annotate__eggnog_mags__search: large
+mag_annotate__eggnog_mags__split: small
+mag_annotate__eggnog_mags__annotate_chunk: large
+mag_annotate__eggnog_mags__merge: small
+mag_annotate__gtdbtk_allbins__classify: large
 
 assemble__bowtie2__build: medium
 assemble__bowtie2__map: medium
