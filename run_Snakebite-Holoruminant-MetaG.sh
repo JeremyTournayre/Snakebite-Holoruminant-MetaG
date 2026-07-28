@@ -2,7 +2,7 @@
 
 # Set the project relevant paths
 ################################################################################
-pipelineFolder="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/Pipeline-Holoruminant-Meta"
+pipelineFolder="/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/Pipeline-Holoruminant-Meta"
 projectFolder="$(pwd)"
 
 # Setup the server profile. You can copy the default profile and adjust it to your hpc.
