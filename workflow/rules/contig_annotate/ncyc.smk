@@ -15,7 +15,7 @@ rule contig_annotate__ncyc__prepare_input:
         runtime=esc("runtime", "contig_annotate__ncyc__prepare_input"),
         mem_mb=esc("mem_mb", "contig_annotate__ncyc__prepare_input"),
         cpus_per_task=esc("cpus", "contig_annotate__ncyc__prepare_input"),
-        slurm_partition=esc("partition", "contig_annotate__ncyc__prepare_input"),
+        partition=esc("partition", "contig_annotate__ncyc__prepare_input"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'contig_annotate__ncyc__prepare_input')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("contig_annotate__ncyc__prepare_input"))
@@ -56,7 +56,7 @@ rule contig_annotate__ncyc__run:
         runtime=esc("runtime", "contig_annotate__ncyc__run"),
         mem_mb=esc("mem_mb", "contig_annotate__ncyc__run"),
         cpus_per_task=esc("cpus", "contig_annotate__ncyc__run"),
-        slurm_partition=esc("partition", "contig_annotate__ncyc__run"),
+        partition=esc("partition", "contig_annotate__ncyc__run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'contig_annotate__ncyc__run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("contig_annotate__ncyc__run"))

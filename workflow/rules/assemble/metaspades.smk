@@ -17,7 +17,7 @@ rule assemble__metaspades__run:
         runtime=esc("runtime", "assemble__metaspades__run"),
         mem_mb=esc("mem_mb", "assemble__metaspades__run"),
         cpus_per_task=esc("cpus", "assemble__metaspades__run"),
-        slurm_partition=esc("partition", "assemble__metaspades__run"),
+        partition=esc("partition", "assemble__metaspades__run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'assemble__metaspades__run')['nvme']}",
         attempt=get_attempt,
         metaspades_slots=1,

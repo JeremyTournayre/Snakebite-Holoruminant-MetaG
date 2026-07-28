@@ -22,7 +22,7 @@ rule mag_annotate__gtdbtk__classify:
         runtime=esc("runtime", "mag_annotate__gtdbtk__classify"),
         mem_mb=esc("mem_mb", "mag_annotate__gtdbtk__classify"),
         cpus_per_task=esc("cpus", "mag_annotate__gtdbtk__classify"),
-        slurm_partition=esc("partition", "mag_annotate__gtdbtk__classify"),
+        partition=esc("partition", "mag_annotate__gtdbtk__classify"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'mag_annotate__gtdbtk__classify')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("mag_annotate__gtdbtk__classify"))

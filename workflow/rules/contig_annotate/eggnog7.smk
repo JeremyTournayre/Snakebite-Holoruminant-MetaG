@@ -18,7 +18,7 @@ rule contig_annotate__eggnog7_run:
         runtime=esc("runtime", "contig_annotate__eggnog7_run"),
         mem_mb=esc("mem_mb", "contig_annotate__eggnog7_run"),
         cpus_per_task=esc("cpus", "contig_annotate__eggnog7_run"),
-        slurm_partition=esc("partition", "contig_annotate__eggnog7_run"),
+        partition=esc("partition", "contig_annotate__eggnog7_run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'contig_annotate__eggnog7_run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("contig_annotate__eggnog7_run"))

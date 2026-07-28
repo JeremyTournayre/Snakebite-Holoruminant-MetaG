@@ -34,7 +34,7 @@ rule read_annotate__kofam_rumen_count:
         runtime=esc("runtime", "read_annotate__kofam_rumen_count"),
         mem_mb=esc("mem_mb", "read_annotate__kofam_rumen_count"),
         cpus_per_task=esc("cpus", "read_annotate__kofam_rumen_count"),
-        slurm_partition=esc("partition", "read_annotate__kofam_rumen_count"),
+        partition=esc("partition", "read_annotate__kofam_rumen_count"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__kofam_rumen_count')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__kofam_rumen_count"))

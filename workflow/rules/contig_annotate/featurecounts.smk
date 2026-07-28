@@ -15,7 +15,7 @@ if params["assemble"]["samtools"]["out_type"].upper() == "CRAM":
             runtime=esc("runtime", "contig_annotate__cramToBam"),
             mem_mb=esc("mem_mb", "contig_annotate__cramToBam"),
             cpus_per_task=esc("cpus", "contig_annotate__cramToBam"),
-            slurm_partition=esc("partition", "contig_annotate__cramToBam"),
+            partition=esc("partition", "contig_annotate__cramToBam"),
             gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'contig_annotate__cramToBam')['nvme']}",
             attempt=get_attempt,
         retries: len(get_escalation_order("contig_annotate__cramToBam"))
@@ -48,7 +48,7 @@ rule contig_annotate__featurecounts_run:
         runtime=esc("runtime", "contig_annotate__featurecounts_run"),
         mem_mb=esc("mem_mb", "contig_annotate__featurecounts_run"),
         cpus_per_task=esc("cpus", "contig_annotate__featurecounts_run"),
-        slurm_partition=esc("partition", "contig_annotate__featurecounts_run"),
+        partition=esc("partition", "contig_annotate__featurecounts_run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'contig_annotate__featurecounts_run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("contig_annotate__featurecounts_run"))

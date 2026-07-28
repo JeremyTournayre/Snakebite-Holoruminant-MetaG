@@ -23,7 +23,7 @@ rule read_annotate__singlem__pipe:
         runtime=esc("runtime", "read_annotate__singlem__pipe"),
         mem_mb=esc("mem_mb", "read_annotate__singlem__pipe"),
         cpus_per_task=esc("cpus", "read_annotate__singlem__pipe"),
-        slurm_partition=esc("partition", "read_annotate__singlem__pipe"),
+        partition=esc("partition", "read_annotate__singlem__pipe"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__singlem__pipe')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__singlem__pipe"))
@@ -73,7 +73,7 @@ rule read_annotate__singlem__condense:
         runtime=esc("runtime", "read_annotate__singlem__condense"),
         mem_mb=esc("mem_mb", "read_annotate__singlem__condense"),
         cpus_per_task=esc("cpus", "read_annotate__singlem__condense"),
-        slurm_partition=esc("partition", "read_annotate__singlem__condense"),
+        partition=esc("partition", "read_annotate__singlem__condense"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__singlem__condense')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__singlem__condense"))
@@ -109,7 +109,7 @@ rule read_annotate__singlem__microbial_fraction:
         runtime=esc("runtime", "read_annotate__singlem__microbial_fraction"),
         mem_mb=esc("mem_mb", "read_annotate__singlem__microbial_fraction"),
         cpus_per_task=esc("cpus", "read_annotate__singlem__microbial_fraction"),
-        slurm_partition=esc("partition", "read_annotate__singlem__microbial_fraction"),
+        partition=esc("partition", "read_annotate__singlem__microbial_fraction"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__singlem__microbial_fraction')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__singlem__microbial_fraction"))
@@ -145,7 +145,7 @@ rule read_annotate__singlem__aggregate_microbial_fraction:
         runtime=esc("runtime", "read_annotate__singlem__aggregate_microbial_fraction"),
         mem_mb=esc("mem_mb", "read_annotate__singlem__aggregate_microbial_fraction"),
         cpus_per_task=esc("cpus", "read_annotate__singlem__aggregate_microbial_fraction"),
-        slurm_partition=esc("partition", "read_annotate__singlem__aggregate_microbial_fraction"),
+        partition=esc("partition", "read_annotate__singlem__aggregate_microbial_fraction"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__singlem__aggregate_microbial_fraction')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__singlem__aggregate_microbial_fraction"))

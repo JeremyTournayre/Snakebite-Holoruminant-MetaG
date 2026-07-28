@@ -8,7 +8,7 @@ rule test_error:
         runtime=esc("runtime", "test_error"),
         mem_mb=esc("mem_mb", "test_error"),
         cpus_per_task=esc("cpus", "test_error"),
-        slurm_partition=esc("partition", "test_error"),
+        partition=esc("partition", "test_error"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'test_error')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("test_error"))

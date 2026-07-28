@@ -21,7 +21,7 @@ rule report__reference:
         runtime=esc("runtime", "report__reference"),
         mem_mb=esc("mem_mb", "report__reference"),
         cpus_per_task=esc("cpus", "report__reference"),
-        slurm_partition=esc("partition", "report__reference"),
+        partition=esc("partition", "report__reference"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'report__reference')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("report__reference"))

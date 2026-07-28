@@ -19,7 +19,7 @@ rule read_annotate__phyloflash__run:
         runtime=esc("runtime", "read_annotate__phyloflash__run"),
         mem_mb=esc("mem_mb", "read_annotate__phyloflash__run"),
         cpus_per_task=esc("cpus", "read_annotate__phyloflash__run"),
-        slurm_partition=esc("partition", "read_annotate__phyloflash__run"),
+        partition=esc("partition", "read_annotate__phyloflash__run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__phyloflash__run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__phyloflash__run"))
@@ -61,7 +61,7 @@ rule read_annotate__phyloflash__condense:
         runtime=esc("runtime", "read_annotate__phyloflash__condense"),
         mem_mb=esc("mem_mb", "read_annotate__phyloflash__condense"),
         cpus_per_task=esc("cpus", "read_annotate__phyloflash__condense"),
-        slurm_partition=esc("partition", "read_annotate__phyloflash__condense"),
+        partition=esc("partition", "read_annotate__phyloflash__condense"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__phyloflash__condense')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__phyloflash__condense"))

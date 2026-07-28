@@ -15,7 +15,7 @@ rule read_annotate__krona__visualize:
         runtime=esc("runtime", "read_annotate__krona__visualize"),
         mem_mb=esc("mem_mb", "read_annotate__krona__visualize"),
         cpus_per_task=esc("cpus", "read_annotate__krona__visualize"),
-        slurm_partition=esc("partition", "read_annotate__krona__visualize"),
+        partition=esc("partition", "read_annotate__krona__visualize"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__krona__visualize')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__krona__visualize"))

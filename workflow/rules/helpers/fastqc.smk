@@ -11,7 +11,7 @@ rule helpers__fastqc:
         runtime=esc("runtime", "helpers__fastqc"),
         mem_mb=esc("mem_mb", "helpers__fastqc"),
         cpus_per_task=esc("cpus", "helpers__fastqc"),
-        slurm_partition=esc("partition", "helpers__fastqc"),
+        partition=esc("partition", "helpers__fastqc"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'helpers__fastqc')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("helpers__fastqc"))

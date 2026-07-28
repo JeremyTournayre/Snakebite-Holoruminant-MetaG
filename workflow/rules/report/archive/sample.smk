@@ -15,7 +15,7 @@ rule report__sample__multiqc:
         runtime=esc("runtime", "report__sample__multiqc"),
         mem_mb=esc("mem_mb", "report__sample__multiqc"),
         cpus_per_task=esc("cpus", "report__sample__multiqc"),
-        slurm_partition=esc("partition", "report__sample__multiqc"),
+        partition=esc("partition", "report__sample__multiqc"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'report__sample__multiqc')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("report__sample__multiqc"))

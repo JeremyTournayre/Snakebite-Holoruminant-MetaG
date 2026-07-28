@@ -14,7 +14,7 @@ rule quantify__coverm__genome_run:
         runtime=esc("runtime", "quantify__coverm__genome_run"),
         mem_mb=esc("mem_mb", "quantify__coverm__genome_run"),
         cpus_per_task=esc("cpus", "quantify__coverm__genome_run"),
-        slurm_partition=esc("partition", "quantify__coverm__genome_run"),
+        partition=esc("partition", "quantify__coverm__genome_run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__coverm__genome_run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__coverm__genome_run"))
@@ -61,7 +61,7 @@ rule quantify__coverm__genome_aggregate:
         runtime=esc("runtime", "quantify__coverm__genome_aggregate"),
         mem_mb=esc("mem_mb", "quantify__coverm__genome_aggregate"),
         cpus_per_task=esc("cpus", "quantify__coverm__genome_aggregate"),
-        slurm_partition=esc("partition", "quantify__coverm__genome_aggregate"),
+        partition=esc("partition", "quantify__coverm__genome_aggregate"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__coverm__genome_aggregate')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__coverm__genome_aggregate"))
@@ -100,7 +100,7 @@ rule quantify__coverm__contig_one:
         runtime=esc("runtime", "quantify__coverm__contig_one"),
         mem_mb=esc("mem_mb", "quantify__coverm__contig_one"),
         cpus_per_task=esc("cpus", "quantify__coverm__contig_one"),
-        slurm_partition=esc("partition", "quantify__coverm__contig_one"),
+        partition=esc("partition", "quantify__coverm__contig_one"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__coverm__contig_one')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__coverm__contig_one"))
@@ -142,7 +142,7 @@ rule quantify__coverm__contig_aggregate:
         runtime=esc("runtime", "quantify__coverm__contig_aggregate"),
         mem_mb=esc("mem_mb", "quantify__coverm__contig_aggregate"),
         cpus_per_task=esc("cpus", "quantify__coverm__contig_aggregate"),
-        slurm_partition=esc("partition", "quantify__coverm__contig_aggregate"),
+        partition=esc("partition", "quantify__coverm__contig_aggregate"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__coverm__contig_aggregate')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__coverm__contig_aggregate"))

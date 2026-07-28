@@ -15,7 +15,7 @@ rule report__step__reads:
         runtime=esc("runtime", "report__step__reads"),
         mem_mb=esc("mem_mb", "report__step__reads"),
         cpus_per_task=esc("cpus", "report__step__reads"),
-        slurm_partition=esc("partition", "report__step__reads"),
+        partition=esc("partition", "report__step__reads"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'report__step__reads')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("report__step__reads"))
@@ -51,7 +51,7 @@ rule report__step__preprocess:
         runtime=esc("runtime", "report__step__preprocess"),
         mem_mb=esc("mem_mb", "report__step__preprocess"),
         cpus_per_task=esc("cpus", "report__step__preprocess"),
-        slurm_partition=esc("partition", "report__step__preprocess"),
+        partition=esc("partition", "report__step__preprocess"),
         slurm_extra="'--gres=nvme:" + str(esc_val("nvme", "report__step__preprocess", attempt=1)) + "'",
         attempt=get_attempt,
     retries: len(get_escalation_order("report__step__preprocess"))
@@ -88,7 +88,7 @@ rule report__step__assemble:
         runtime=esc("runtime", "report__step__assemble"),
         mem_mb=esc("mem_mb", "report__step__assemble"),
         cpus_per_task=esc("cpus", "report__step__assemble"),
-        slurm_partition=esc("partition", "report__step__assemble"),
+        partition=esc("partition", "report__step__assemble"),
         slurm_extra="'--gres=nvme:" + str(esc_val("nvme", "report__step__assemble", attempt=1)) + "'",
         attempt=get_attempt,
     retries: len(get_escalation_order("report__step__assemble"))
@@ -121,7 +121,7 @@ rule report__step__quantify:
         runtime=esc("runtime", "report__step__quantify"),
         mem_mb=esc("mem_mb", "report__step__quantify"),
         cpus_per_task=esc("cpus", "report__step__quantify"),
-        slurm_partition=esc("partition", "report__step__quantify"),
+        partition=esc("partition", "report__step__quantify"),
         slurm_extra="'--gres=nvme:" + str(esc_val("nvme", "report__step__quantify", attempt=1)) + "'",
         attempt=get_attempt,
     retries: len(get_escalation_order("report__step__quantify"))

@@ -13,7 +13,7 @@ rule reference__hosts__recompress:
         runtime=esc("runtime", "reference__hosts__recompress"),
         mem_mb=esc("mem_mb", "reference__hosts__recompress"),
         cpus_per_task=esc("cpus", "reference__hosts__recompress"),
-        slurm_partition=esc("partition", "reference__hosts__recompress"),
+        partition=esc("partition", "reference__hosts__recompress"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'reference__hosts__recompress')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("reference__hosts__recompress"))

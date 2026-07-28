@@ -16,7 +16,7 @@ rule quantify__samtools__stats_cram:
         runtime=esc("runtime", "quantify__samtools__stats_cram"),
         mem_mb=esc("mem_mb", "quantify__samtools__stats_cram"),
         cpus_per_task=esc("cpus", "quantify__samtools__stats_cram"),
-        slurm_partition=esc("partition", "quantify__samtools__stats_cram"),
+        partition=esc("partition", "quantify__samtools__stats_cram"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__samtools__stats_cram')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__samtools__stats_cram"))

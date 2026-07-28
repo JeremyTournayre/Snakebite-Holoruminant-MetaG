@@ -19,7 +19,7 @@ rule read_annotate__metaphlan__run:
         runtime=esc("runtime", "read_annotate__metaphlan__run"),
         mem_mb=esc("mem_mb", "read_annotate__metaphlan__run"),
         cpus_per_task=esc("cpus", "read_annotate__metaphlan__run"),
-        slurm_partition=esc("partition", "read_annotate__metaphlan__run"),
+        partition=esc("partition", "read_annotate__metaphlan__run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__metaphlan__run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__metaphlan__run"))
@@ -61,7 +61,7 @@ rule read_annotate__metaphlan__condense:
         runtime=esc("runtime", "read_annotate__metaphlan__condense"),
         mem_mb=esc("mem_mb", "read_annotate__metaphlan__condense"),
         cpus_per_task=esc("cpus", "read_annotate__metaphlan__condense"),
-        slurm_partition=esc("partition", "read_annotate__metaphlan__condense"),
+        partition=esc("partition", "read_annotate__metaphlan__condense"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'read_annotate__metaphlan__condense')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("read_annotate__metaphlan__condense"))

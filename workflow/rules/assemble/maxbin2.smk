@@ -18,7 +18,7 @@ rule assemble__maxbin2__run:
         runtime=esc("runtime", "assemble__maxbin2__run"),
         mem_mb=esc("mem_mb", "assemble__maxbin2__run"),
         cpus_per_task=esc("cpus", "assemble__maxbin2__run"),
-        slurm_partition=esc("partition", "assemble__maxbin2__run"),
+        partition=esc("partition", "assemble__maxbin2__run"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'assemble__maxbin2__run')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("assemble__maxbin2__run"))

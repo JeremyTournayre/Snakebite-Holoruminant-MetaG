@@ -13,7 +13,7 @@ rule quantify__bowtie2__build:
         runtime=esc("runtime", "quantify__bowtie2__build"),
         mem_mb=esc("mem_mb", "quantify__bowtie2__build"),
         cpus_per_task=esc("cpus", "quantify__bowtie2__build"),
-        slurm_partition=esc("partition", "quantify__bowtie2__build"),
+        partition=esc("partition", "quantify__bowtie2__build"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__bowtie2__build')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__bowtie2__build"))
@@ -46,7 +46,7 @@ rule quantify__bowtie2__map:
         runtime=esc("runtime", "quantify__bowtie2__map"),
         mem_mb=esc("mem_mb", "quantify__bowtie2__map"),
         cpus_per_task=esc("cpus", "quantify__bowtie2__map"),
-        slurm_partition=esc("partition", "quantify__bowtie2__map"),
+        partition=esc("partition", "quantify__bowtie2__map"),
         gres=lambda wc, attempt: f"{get_resources(wc, attempt, 'quantify__bowtie2__map')['nvme']}",
         attempt=get_attempt,
     retries: len(get_escalation_order("quantify__bowtie2__map"))
