@@ -86,7 +86,7 @@ snakemake -s $pipelineFolder/workflow/Snakefile \
           --use-singularity \
           --configfile $projectFolder/config/config.yaml \
           --profile $Profile \
-          --singularity-args "-B /work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/tmp,/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/resources,/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta_2026_01_20/Pipeline-Holoruminant-Meta/workflow/scripts" \
+          --singularity-args "-B /work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/tmp,/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/scratch/resources,/work_projet/holoruminant/project_Pipeline-Holoruminant-Meta/Pipeline-Holoruminant-Meta/workflow/scripts" \
           --singularity-prefix $projectFolder/docker_images/ \
           --latency-wait 60 \
           --scheduler greedy \

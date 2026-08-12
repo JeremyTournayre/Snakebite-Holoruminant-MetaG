@@ -1,21 +1,5 @@
 # workflow/rules/read_annotate/kofam_rumen.smk
 
-# ── Règle 1 : indexer le catalogue (à faire une seule fois) ──────────────────
-rule read_annotate__kofam_rumen_bwa_index:
-    """Index le catalogue de gènes rumen pour BWA"""
-    input:
-        catalogue=features["databases"]["kofam_rumen_fna"],
-    output:
-        features["databases"]["kofam_rumen_fna"] + ".bwt",
-    log:
-        PRE_KOFAM_RUMEN / "bwa_index.log",
-    container:
-        docker["bwa_msamtools"]
-    shell:
-        "bwa index {input.catalogue} 2> {log}"
-
-
-# ── Règle 2 : aligner + compter par échantillon ──────────────────────────────
 rule read_annotate__kofam_rumen_count:
     """Aligne les reads sur le catalogue rumen et compte par gène"""
     input:
@@ -24,7 +8,7 @@ rule read_annotate__kofam_rumen_count:
         catalogue=features["databases"]["kofam_rumen_fna"],
         index=features["databases"]["kofam_rumen_fna"] + ".bwt",
     output:
-        PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.tsv",
+        counts=PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.tsv",
     log:
         PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.log",
     container:
@@ -42,16 +26,30 @@ rule read_annotate__kofam_rumen_count:
         """
         echo "Starting kofam_rumen_count attempt {resources.attempt}" > {log}.{resources.attempt}
 
-        bwa mem -t {threads} {input.catalogue} {input.forwards} {input.reverses} 2>> {log}.{resources.attempt} \
-            | samtools sort -@ {threads} \
-            | msamtools filter -b -l 80 -p 95 -z 5 - \
-            | msamtools count --multi prop - > {output} 2>> {log}.{resources.attempt}
+        SAM={output.counts}.tmp.sam
+        BAM_SORTED={output.counts}.tmp.sorted.bam
+        BAM_FILTERED={output.counts}.tmp.filtered.bam
+
+        bwa mem -t {threads} {input.catalogue} {input.forwards} {input.reverses} \
+            > $SAM 2>> {log}.{resources.attempt}
+
+        samtools sort -@ {threads} $SAM \
+            > $BAM_SORTED 2>> {log}.{resources.attempt}
+        rm $SAM
+
+        msamtools filter -b -l 80 -p 95 -z 5 $BAM_SORTED \
+            > $BAM_FILTERED 2>> {log}.{resources.attempt}
+        rm $BAM_SORTED
+
+        msamtools profile --multi prop --label {wildcards.sample_id}.{wildcards.library_id} \
+            $BAM_FILTERED \
+            > {output.counts} 2>> {log}.{resources.attempt}
+        rm $BAM_FILTERED
 
         mv {log}.{resources.attempt} {log}
         """
 
 
-# ── Règle 3 : merger KO par échantillon ──────────────────────────────────────
 rule read_annotate__kofam_rumen_merge_ko:
     """Croise les comptages avec l'annotation KofamScan → table KO x échantillon"""
     input:
@@ -70,7 +68,6 @@ rule read_annotate__kofam_rumen_merge_ko:
         """
 
 
-# ── Règle cible ──────────────────────────────────────────────────────────────
 rule read_annotate__kofam_rumen:
     """Run KO annotation rumen custom"""
     input:

@@ -28,7 +28,7 @@ rule contig_annotate__camper__annotate:
         """
         # Setup tmp-folder, depending whether there is nvme space or not.
 
-        if [[ -n {params.nvme} ]]; then
+        if [[ -n "{params.nvme}" ]]; then
             tmp_db_dir={params.nvme}/{params.sample}
         else
             tmp_db_dir={params.out_dir}/camper_db_tmp

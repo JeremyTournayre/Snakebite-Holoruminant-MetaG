@@ -2,7 +2,7 @@
 """
 sylph_add_taxonomy.py
 ---------------------
-Adds GTDB taxonomy to Sylph results by looking it up in the 4 taxonomy
+Adds GTDB taxonomy to Sylph results by looking it up in the GTDB-Tk summary
 files of the custom rumen database. Produces one file per sample.
 
 Usage (Snakemake):
@@ -18,88 +18,79 @@ import argparse
 from pathlib import Path
 
 
+# Mapping dossier GTDB-Tk -> préfixe skDER
+# Nécessaire quand GTDB-Tk a été lancé plusieurs fois avec des suffixes différents
+GTDB_FOLDER_TO_SKDER_PREFIX = {
+    "700MAGs_fa":    "700MAGs",
+    "700MAGs_fasta": "700MAGs",
+    "700MAGs_fna":   "700MAGs",
+    # les autres : dossier == préfixe skDER, pas besoin de les lister
+}
+
+
 def clean_genome_name(path_or_name: str) -> str:
-    """Extracts the base name without known extensions (.fa, .fna, .fasta, .ok)."""
+    """Extracts the base name without known extensions."""
     name = Path(path_or_name).name
+    name = re.sub(r'_genomic\.fna\.gz$', '', name)
     name = re.sub(r'\.(fasta|fna|fa)$', '', name, flags=re.IGNORECASE)
     name = re.sub(r'\.ok$', '', name)
     return name
 
 
 def load_taxonomy(taxo_dir: str) -> dict:
-    """
-    Returns a dict {genome_name: taxonomy_string} by merging the 4 sources.
-    Priority: SupaCow > RBAG > Hungate > RCG
-    """
     taxo = {}
     taxo_dir = Path(taxo_dir)
 
-    # ── 1. SupaCowTaxTotal.tsv ──
-    supacow = taxo_dir / "SupaCowTaxTotal.tsv"
-    if supacow.exists():
-        with open(supacow) as f:
+    # ── 1. Fichiers GTDB-Tk standard (gtdbtk.*.summary.tsv) ──
+    summary_files = sorted(taxo_dir.rglob("gtdbtk.*.summary.tsv"))
+    for summary_file in summary_files:
+        folder_name = summary_file.parent.name
+        source_prefix = GTDB_FOLDER_TO_SKDER_PREFIX.get(folder_name, folder_name)
+        print(f"[sylph_add_taxonomy] Loading {summary_file} -> prefix '{source_prefix}'")
+        with open(summary_file) as f:
             reader = csv.DictReader(f, delimiter="\t")
             for row in reader:
-                name = row["sample"].strip()
-                levels = []
-                for lvl, prefix in [
-                    ("Kingdom", "d__"), ("Phylum", "p__"), ("Class", "c__"),
-                    ("Order", "o__"), ("Family", "f__"), ("Genus", "g__"), ("Species", "s__")
-                ]:
-                    val = row.get(lvl, "").strip()
-                    if val and val != "NA":
-                        if prefix == "s__":
-                            genus = row.get("Genus", "").strip()
-                            val = f"{genus} {val}" if genus and genus != "NA" else val
-                        levels.append(f"{prefix}{val}")
-                if levels:
-                    taxo[name] = ";".join(levels)
-
-    # ── 2. RBAG_gtdbtk_summary.tsv ──
-    rbag = taxo_dir / "RBAG_gtdbtk_summary.tsv"
-    if rbag.exists():
-        with open(rbag) as f:
-            reader = csv.DictReader(f, delimiter="\t")
-            for row in reader:
-                name = clean_genome_name(row["user_genome"].strip())
+                genome_id = row["user_genome"].strip()
+                genome_id = re.sub(r'\.ok$', '', genome_id) 
+                key = f"{source_prefix}__{genome_id}"
                 taxo_str = row["classification"].strip()
                 levels = [
                     lvl for lvl in taxo_str.split(";")
                     if lvl and "__" in lvl and lvl.split("__")[1] != ""
                 ]
-                if levels and name not in taxo:
-                    taxo[name] = ";".join(levels)
+                if levels and key not in taxo:
+                    taxo[key] = ";".join(levels)
 
-    # ── 3. Hungate (40168_*.tsv) ──
-    hungate_files = list(taxo_dir.glob("40168_*.tsv"))
-    if hungate_files:
-        with open(hungate_files[0]) as f:
-            reader = csv.DictReader(f, delimiter="\t")
-            for row in reader:
-                name = row["Original_Genome_Name"].strip()
-                taxo_str = row["gtdb_taxanomy"].strip()
+    # ── 2. Fichiers GTDB r232 bruts (*_taxonomy_r232.tsv) ──
+    # Format : RS_GCF_xxx.1\ttaxonomy  (pas de header)
+    # skDER :  gtdb_232__GCA_xxx.1_genomic.fna.gz  -> clé : gtdb_232__GCA_xxx.1
+    r232_files = sorted(taxo_dir.rglob("*_taxonomy_r232.tsv"))
+    for r232_file in r232_files:
+        source_prefix = "gtdb_232"
+        print(f"[sylph_add_taxonomy] Loading {r232_file} -> prefix '{source_prefix}'")
+        with open(r232_file) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split("\t")
+                if len(parts) < 2:
+                    continue
+                raw_acc, taxo_str = parts[0], parts[1]
+                # Supprime le préfixe RS_ ou GB_
+                acc = re.sub(r'^(RS_|GB_)', '', raw_acc)
+                key = f"{source_prefix}__{acc}"
                 levels = [
                     lvl for lvl in taxo_str.split(";")
                     if lvl and "__" in lvl and lvl.split("__")[1] != ""
                 ]
-                if levels and name not in taxo:
-                    taxo[name] = ";".join(levels)
+                if levels and key not in taxo:
+                    taxo[key] = ";".join(levels)
 
-    # ── 4. RCG_450_summary.tsv ──
-    rcg = taxo_dir / "RCG_450_summary.tsv"
-    if rcg.exists():
-        with open(rcg) as f:
-            reader = csv.DictReader(f, delimiter="\t")
-            for row in reader:
-                name = row["Genome name"].strip()
-                taxo_str = row["Taxonomy"].strip()
-                levels = [
-                    lvl for lvl in taxo_str.split(";")
-                    if lvl and "__" in lvl and lvl.split("__")[1] != ""
-                ]
-                if levels and name not in taxo:
-                    taxo[name] = ";".join(levels)
+    if not summary_files and not r232_files:
+        print(f"[sylph_add_taxonomy] Warning: no taxonomy files found in {taxo_dir}")
 
+    print(f"[sylph_add_taxonomy] {len(taxo)} genomes loaded total")
     return taxo
 
 
@@ -157,7 +148,7 @@ def process_sylph_file(sylph_file: str, taxo: dict, output: str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--sylph",    required=True, help="Sylph .profiling.tsv file")
-    parser.add_argument("--taxo-dir", required=True, help="Directory containing the 4 taxonomy files")
+    parser.add_argument("--taxo-dir", required=True, help="Directory containing gtdb_r232_taxonomy")
     parser.add_argument("--output",   required=True, help="Output TSV file")
     args = parser.parse_args()
 

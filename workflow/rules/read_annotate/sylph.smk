@@ -51,7 +51,7 @@ rule read_annotate__sylph:
         ]
 
 
-# ── Règle : ajout taxonomie rumen aux résultats Sylph ────────────────────────
+#Rule: Add Rumen Taxonomy to Sylph Results
 if SYLPH_IS_RUMEN_CUSTOM:
 
     rule read_annotate__sylph_add_taxonomy:
@@ -63,7 +63,7 @@ if SYLPH_IS_RUMEN_CUSTOM:
         log:
             PRE_SYLPH / "{sample_id}.{library_id}.add_taxonomy.log",
         params:
-            taxo_dir=str(Path(features["databases"]["sylph"]).parent.parent / "DB" / "taxonomy"),
+            taxo_dir=str(Path(features["databases"]["sylph"]).parent.parent / "DB" / "gtdb_r232_taxonomy"),
             folder=config["pipeline_folder"],
         shell:
             """

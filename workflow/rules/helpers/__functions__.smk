@@ -9,7 +9,7 @@ def get_attempt(wildcards, attempt):
 # --- Escalation functions ---
 
 def get_escalation_order(rule_name):
-    return ESCALATION_CONFIG.get(rule_name, ["small", "medium", "large"])
+    return ESCALATION_CONFIG.get(rule_name, ["small"])
 
 def get_resources(wildcards, attempt, rule_name):
     escalation_order = get_escalation_order(rule_name)

@@ -44,43 +44,43 @@ resource_sets:
   medium:
     runtime: 720
     mem_mb: 160000
-    cpus: 2
+    cpus: 10
     partition: "short.q"
     nvme: "nvme:0"
     
   large:
-    runtime: 720
-    mem_mb: 160000
-    cpus: 2
-    partition: "short.q"
+    runtime: 4000
+    mem_mb: 320000
+    cpus: 20
+    partition: "long.q"
     nvme: "nvme:0"
 
   highmem:
-    runtime: 720
-    mem_mb: 160000
-    cpus: 2
-    partition: "short.q"
+    runtime: 10000
+    mem_mb: 1400000
+    cpus: 20
+    partition: "highmem.q"
     nvme: "nvme:0"
 
   longrun:
-    runtime: 720
-    mem_mb: 160000
-    cpus: 2
-    partition: "short.q"
+    runtime: 7200
+    mem_mb: 320000
+    cpus: 20
+    partition: "long.q"
     nvme: "nvme:0"
-
+  
   highmem_longrun:
-    runtime: 720
-    mem_mb: 160000
-    cpus: 2
+    runtime: 10000
+    mem_mb: 1400000
+    cpus: 20
     partition: "highmem.q"
     nvme: "nvme:0"
 
   full_node:
-    runtime: 720
-    mem_mb: 160000
-    cpus: 2
-    partition: "short.q"
+    runtime: 4000
+    mem_mb: 360000
+    cpus: 40
+    partition: "long.q"
     nvme: "nvme:0"
     
  # The previous node is used for setting up a ramdisc for time-critical tasks. Make sure, that the allocation ensures that the entire node is

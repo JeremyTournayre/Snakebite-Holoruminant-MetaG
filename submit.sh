@@ -17,6 +17,7 @@ convert_minutes_to_hms() {
 total_mem=$(( mem_per_cpu * cpu_per_task ))
 
 qsub -cwd \
+     -r n \
      -l h_rt=$(convert_minutes_to_hms ${time}) \
      -l mem_free=${total_mem} \
      -pe thread ${cpu_per_task} \
