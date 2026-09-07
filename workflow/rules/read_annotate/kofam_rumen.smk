@@ -8,7 +8,7 @@ rule read_annotate__kofam_rumen_count:
         catalogue=features["databases"]["kofam_rumen_fna"],
         index=features["databases"]["kofam_rumen_fna"] + ".bwt",
     output:
-        counts=PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.tsv",
+        counts=PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.tsv.gz",
     log:
         PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.log",
     container:
@@ -26,9 +26,10 @@ rule read_annotate__kofam_rumen_count:
         """
         echo "Starting kofam_rumen_count attempt {resources.attempt}" > {log}.{resources.attempt}
 
-        SAM={output.counts}.tmp.sam
-        BAM_SORTED={output.counts}.tmp.sorted.bam
-        BAM_FILTERED={output.counts}.tmp.filtered.bam
+        PREFIX=$(echo {output.counts} | sed 's/.tsv.gz//')
+        SAM=$PREFIX.tmp.sam
+        BAM_SORTED=$PREFIX.tmp.sorted.bam
+        BAM_FILTERED=$PREFIX.tmp.filtered.bam
 
         bwa mem -t {threads} {input.catalogue} {input.forwards} {input.reverses} \
             > $SAM 2>> {log}.{resources.attempt}
@@ -42,8 +43,9 @@ rule read_annotate__kofam_rumen_count:
         rm $BAM_SORTED
 
         msamtools profile --multi prop --label {wildcards.sample_id}.{wildcards.library_id} \
+            -o {output.counts} \
             $BAM_FILTERED \
-            > {output.counts} 2>> {log}.{resources.attempt}
+            2>> {log}.{resources.attempt}
         rm $BAM_FILTERED
 
         mv {log}.{resources.attempt} {log}
@@ -53,17 +55,51 @@ rule read_annotate__kofam_rumen_count:
 rule read_annotate__kofam_rumen_merge_ko:
     """Croise les comptages avec l'annotation KofamScan → table KO x échantillon"""
     input:
-        counts=PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.tsv",
-        ko_annot=features["databases"]["kofam_rumen_annotation"],  # annotation_kegg.tsv
+        counts=PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.counts.tsv.gz",
+        ko_annot=features["databases"]["kofam_rumen_annotation"],
     output:
         PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.ko_counts.tsv",
     log:
         PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.ko_counts.log",
     shell:
         """
-        # Joint sur le nom de gène (colonne 1 des deux fichiers)
-        awk 'NR==FNR {{ko[$1]=$2; next}} ($1 in ko) {{print ko[$1], $0}}' \
-            {input.ko_annot} {input.counts} \
+        awk '
+            NR==FNR && NR==1 {{next}}
+            NR==FNR {{ko[$2]=$3; next}}
+            /^#/ {{next}}
+            ($1 in ko) {{print ko[$1], $0}}
+        ' {input.ko_annot} <(zcat {input.counts} | grep -v "^#") \
+            > {output} 2> {log}
+        """
+
+rule read_annotate__kofam_rumen_aggregate_ko:
+    """Agrège les proportions par KO, ajoute le nom fonctionnel et une ligne Unknown"""
+    input:
+        ko_counts=PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.ko_counts.tsv",
+    output:
+        PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.ko_named.tsv",
+    log:
+        PRE_KOFAM_RUMEN / "{sample_id}.{library_id}.ko_named.log",
+    params:
+        ko_list=str(Path(features["databases"]["kofam_rumen_annotation"]).parent.parent / "kofam_db" / "ko_list"),
+    shell:
+        """
+        awk '
+            NR==FNR && NR==1 {{next}}
+            NR==FNR {{
+                def=""; for(i=12;i<=NF;i++) def=def (i>12?" ":"") $i
+                name[$1]=def; next
+            }}
+            {{ko[$1]+=$3; total+=$3}}
+            END {{
+                for (k in ko) {{
+                    if (k in name) print k"\t"name[k]"\t"ko[k]
+                    else print k"\tUnknown function\t"ko[k]
+                }}
+                print "Unknown\tUnknown function\t"(1-total)
+            }}
+        ' {params.ko_list} {input.ko_counts} \
+            | sort -k1,1 \
             > {output} 2> {log}
         """
 
@@ -72,6 +108,6 @@ rule read_annotate__kofam_rumen:
     """Run KO annotation rumen custom"""
     input:
         [
-            PRE_KOFAM_RUMEN / f"{sample_id}.{library_id}.ko_counts.tsv"
+            PRE_KOFAM_RUMEN / f"{sample_id}.{library_id}.ko_named.tsv"
             for sample_id, library_id in SAMPLE_LIBRARY
         ]

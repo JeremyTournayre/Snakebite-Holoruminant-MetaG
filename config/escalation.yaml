@@ -118,3 +118,5 @@ report__step__quantify: small
 test_error: small
 
 metax__export: small
+metax__ncbi_taxdump: small
+metax__bakta_fix: small

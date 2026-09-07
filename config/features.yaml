@@ -43,8 +43,14 @@ databases:
     amphora2: resources/databases/phylophlan/amphora2
     phylophlan: resources/databases/phylophlan/phylophlan
   singlem: resources/databases/singlem/S4.3.0.GTDB_r220.metapackage_20240523.smpkg.zb
-# sylph: resources/databases/sylph/gtdb-r220-c200-dbv1.syldb
-  sylph: resources/databases/creation_of_customRumenDB_2026_05_26/Sylph/rumen_db_2026_05_26.syldb.syldb
+
+  # sylph: resources/databases/sylph/gtdb-r220-c200-dbv1.syldb
+  # sylph: resources/databases/creation_of_customRumenDB_2026_05_26/Sylph/rumen_db_2026_05_26.syldb.syldb
+  sylph: resources/databases/creation_of_customRumenDB_2026_07_29/2.Sylph/rumen_db_2026_07_30.syldb
+  # sylph: resources/databases/creation_of_customRumenDB_2026_08_10/2.Sylph/rumen_db_2026_08_10.syldb
+
   virify: resources/databases/virify
-  kofam_rumen_fna: resources/databases/creation_of_customRumenDB_2026_05_26/gene_catalogue_output/NR_95_final.ffn
-  kofam_rumen_annotation: resources/databases/creation_of_customRumenDB_2026_05_26/kofamscan/annotation_kegg.tsv
+  kofam_rumen_fna: resources/databases/creation_of_customRumenDB_2026_07_29/2.build_gene_catalogue/gene_catalogue_output/NR_95_final.ffn
+  kofam_rumen_annotation: resources/databases/creation_of_customRumenDB_2026_07_29/3.kegg_annot_workflow/gene_catalogue_output/NR_95_final.2026_07.kofamscan.tsv
+  # kofam_rumen_fna: resources/databases/creation_of_customRumenDB_2026_08_10/2.build_gene_catalogue/gene_catalogue_output/NR_95_final.ffn
+  # kofam_rumen_annotation: resources/databases/creation_of_customRumenDB_2026_08_10/3.kegg_annot_workflow/gene_catalogue_output/NR_95_final.2026_07.kofamscan.tsv

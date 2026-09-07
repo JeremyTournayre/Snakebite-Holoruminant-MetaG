@@ -64,8 +64,8 @@ resource_sets:
 
   longrun:
     runtime: 7200
-    mem_mb: 320000
-    cpus: 20
+    mem_mb: 160000
+    cpus: 10
     partition: "long.q"
     nvme: "nvme:0"
   
