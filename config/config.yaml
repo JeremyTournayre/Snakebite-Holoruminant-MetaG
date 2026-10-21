@@ -38,28 +38,36 @@ resource_sets:
     runtime: 300
     mem_mb: 16000
     cpus: 1
-    partition: "short.q"
+    partition: "short.q,infinit.q"  # first queue preferred, the next ones used only when it is full (see submit.sh)
     nvme: "nvme:0"
 
   medium:
     runtime: 720
     mem_mb: 160000
     cpus: 10
-    partition: "short.q"
+    partition: "short.q,infinit.q"
     nvme: "nvme:0"
     
   large:
     runtime: 4000
     mem_mb: 320000
     cpus: 20
-    partition: "long.q"
+    partition: "long.q,highmem.q"
+    nvme: "nvme:0"
+
+  # metaSPAdes. Measured on Migale (47 rumen samples, 20 threads): max 365 GB, median 15.7 h, max 45 h
+  assembly:
+    runtime: 4000
+    mem_mb: 450000
+    cpus: 32
+    partition: "highmem.q,long.q"
     nvme: "nvme:0"
 
   highmem:
     runtime: 10000
     mem_mb: 1400000
     cpus: 20
-    partition: "highmem.q"
+    partition: "highmem.q,bigmem.q"
     nvme: "nvme:0"
 
   longrun:

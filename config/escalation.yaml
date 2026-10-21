@@ -38,7 +38,7 @@ assemble__magscot__rename: small
 assemble__maxbin2__run: large
 assemble__metabat2__run: large
 assemble__megahit__run: large
-assemble__metaspades__run: large
+assemble__metaspades__run: assembly, highmem
 
 contig_annotate__camper__annotate: medium
 contig_annotate__diamond__assign: medium
