@@ -63,7 +63,7 @@ helpers__samtools__index_cram: small
 
 preprocess__bowtie2__build: medium
 preprocess__bowtie2__extract_nonhost: medium
-preprocess__bowtie2__extract_nonhost_run: small
+preprocess__bowtie2__extract_nonhost_run: small_mt
 preprocess__bowtie2__map: medium
 preprocess__fastp__run: medium
 preprocess__samtools__stats_cram: small

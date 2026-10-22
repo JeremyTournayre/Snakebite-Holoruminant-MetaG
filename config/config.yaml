@@ -41,6 +41,15 @@ resource_sets:
     partition: "short.q,infinit.q"  # first queue preferred, the next ones used only when it is full (see submit.sh)
     nvme: "nvme:0"
 
+  # Multithreaded but light jobs (samtools sort | pigz): 4 threads speed them up ~3-4x
+  # while 100 samples in parallel still fit the 512 slots/user of short.q
+  small_mt:
+    runtime: 300
+    mem_mb: 16000
+    cpus: 4
+    partition: "short.q,infinit.q"
+    nvme: "nvme:0"
+
   medium:
     runtime: 720
     mem_mb: 160000
