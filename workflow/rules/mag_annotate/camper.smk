@@ -36,7 +36,12 @@ rule mag_annotate__camper__annotate:
         fi
 
         mkdir -p $tmp_db_dir
-        cp {params.camper_db}/* $tmp_db_dir 2>> {log} 1>&2
+        # Copy only the files of the database (sub-folders would make cp fail)
+        for f in {params.camper_db}/*; do
+            if [[ -f "$f" ]]; then
+                cp "$f" $tmp_db_dir 2>> {log} 1>&2
+            fi
+        done
         
         tmpdir={params.camper_dir}/tmp
         
