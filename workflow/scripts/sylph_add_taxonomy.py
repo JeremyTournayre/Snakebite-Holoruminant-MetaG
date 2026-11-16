@@ -4,6 +4,8 @@ sylph_add_taxonomy.py
 ---------------------
 Adds GTDB taxonomy to Sylph results by looking it up in the GTDB-Tk summary
 files of the custom rumen database. Produces one file per sample.
+Eukaryote genomes (rumen ciliates, 450_RCGs) take the taxonomy of their source
+table (DB/taxonomy_from_sources) instead of GTDB-Tk.
 
 Usage (Snakemake):
     python sylph_add_taxonomy.py \
@@ -26,6 +28,53 @@ GTDB_FOLDER_TO_SKDER_PREFIX = {
     "700MAGs_fna":   "700MAGs",
     # les autres : dossier == préfixe skDER, pas besoin de les lister
 }
+
+# Eukaryote genomes: GTDB-Tk only knows bacteria and archaea, so its labels for
+# them are wrong. Their taxonomy is taken from the source table instead, found in
+# DB/taxonomy_from_sources/ (next to gtdb_r232_taxonomy/).
+# skDER prefix -> source table (genome name in the first column, lineage in the last one)
+EUKARYOTE_SOURCES = {
+    "450_RCGs.fasta": "450_RCGs.fasta/RCG_450_summary.tsv",
+}
+
+
+def parse_gtdbtk_classification(taxo_str: str) -> str:
+    """'d__Bacteria;p__X;...;s__' -> 'd__Bacteria;p__X' (empty levels removed).
+    GTDB-Tk unclassified genomes keep what is known:
+    'Unclassified Bacteria' -> 'd__Bacteria', 'Unclassified Archaea' -> 'd__Archaea',
+    'Unclassified' (no bacterial or archaeal marker) -> 'Unclassified'."""
+    taxo_str = taxo_str.strip()
+    if taxo_str.startswith("Unclassified"):
+        domain = taxo_str[len("Unclassified"):].strip()
+        return f"d__{domain}" if domain else "Unclassified"
+    levels = [
+        lvl for lvl in taxo_str.split(";")
+        if lvl and "__" in lvl and lvl.split("__")[1] != ""
+    ]
+    return ";".join(levels)
+
+
+def load_eukaryote_taxonomy(sources_dir: Path) -> dict:
+    """Reads the source taxonomy of the eukaryote genomes (see EUKARYOTE_SOURCES)."""
+    euk = {}
+    for prefix, table in EUKARYOTE_SOURCES.items():
+        table = sources_dir / table
+        if not table.is_file():
+            print(f"[sylph_add_taxonomy] Warning: eukaryote source taxonomy not found: {table}")
+            continue
+        n = 0
+        with open(table) as f:
+            reader = csv.reader(f, delimiter="\t")
+            next(reader)  # header
+            for fields in reader:
+                if not fields:
+                    continue
+                taxo_str = parse_gtdbtk_classification(fields[-1])
+                if taxo_str:
+                    euk[f"{prefix}__{fields[0].strip()}"] = taxo_str
+                    n += 1
+        print(f"[sylph_add_taxonomy] Loading {table} -> {n} eukaryote genomes (source taxonomy, replaces GTDB-Tk)")
+    return euk
 
 
 def clean_genome_name(path_or_name: str) -> str:
@@ -53,13 +102,9 @@ def load_taxonomy(taxo_dir: str) -> dict:
                 genome_id = row["user_genome"].strip()
                 genome_id = re.sub(r'\.ok$', '', genome_id) 
                 key = f"{source_prefix}__{genome_id}"
-                taxo_str = row["classification"].strip()
-                levels = [
-                    lvl for lvl in taxo_str.split(";")
-                    if lvl and "__" in lvl and lvl.split("__")[1] != ""
-                ]
-                if levels and key not in taxo:
-                    taxo[key] = ";".join(levels)
+                taxo_str = parse_gtdbtk_classification(row["classification"])
+                if taxo_str and key not in taxo:
+                    taxo[key] = taxo_str
 
     # ── 2. Fichiers GTDB r232 bruts (*_taxonomy_r232.tsv) ──
     # Format : RS_GCF_xxx.1\ttaxonomy  (pas de header)
@@ -89,6 +134,13 @@ def load_taxonomy(taxo_dir: str) -> dict:
 
     if not summary_files and not r232_files:
         print(f"[sylph_add_taxonomy] Warning: no taxonomy files found in {taxo_dir}")
+
+    # ── 3. Eukaryotes: source taxonomy instead of GTDB-Tk ──
+    euk = load_eukaryote_taxonomy(taxo_dir.parent / "taxonomy_from_sources")
+    replaced = sum(1 for key in euk if key in taxo)
+    taxo.update(euk)
+    if euk:
+        print(f"[sylph_add_taxonomy] {replaced} GTDB-Tk classifications replaced by the eukaryote source taxonomy")
 
     print(f"[sylph_add_taxonomy] {len(taxo)} genomes loaded total")
     return taxo
